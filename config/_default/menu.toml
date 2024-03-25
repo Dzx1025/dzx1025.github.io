@@ -11,14 +11,25 @@
 identifier = "github"
 name = "GitHub"
 url = "https://github.com/Dzx1025"
+weight = 1
 
 [social.params]
 icon = "brand-github"
 
 [[social]]
-identifier = "twitter"
-name = "Twitter"
-url = "https://twitter.com"
+identifier = "linkedin"
+name = "LinkedIn"
+url = "https://www.linkedin.com/in/zeke-ding-2898182b8/"
+weight = 1
 
 [social.params]
-icon = "brand-twitter"
+icon = "brand-linkedin"
+
+[[social]]
+identifier = "instagram"
+name = "Instagram"
+url = "https://www.instagram.com/zexud?igsh=Y3N5eHVqaWs1Z2Mz&utm_source=qr"
+weight = 3
+
+[social.params]
+icon = "brand-instagram"
