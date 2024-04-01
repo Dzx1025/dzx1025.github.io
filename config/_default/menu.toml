@@ -19,7 +19,7 @@ icon = "brand-github"
 [[social]]
 identifier = "linkedin"
 name = "LinkedIn"
-url = "https://www.linkedin.com/in/zeke-ding-2898182b8/"
+url = "https://www.linkedin.com/in/zekeding/"
 weight = 1
 
 [social.params]
