@@ -1,5 +1,5 @@
 ---
-title: "Python Formatter setting in Vscode"
+title: "Python Formatter setting in VSCode"
 description: 
 date: 2024-04-02T15:47:59Z
 image: 
