@@ -31,11 +31,11 @@ Add these in setting.json.
 
 Before:
 
-![alt text](image.png)
+![before](image.png)
 
 After:
 
-![alt text](image-1.png)
+![after](image-1.png)
 
 About the best line length number, refer to [Black document](https://black.readthedocs.io/en/stable/the_black_code_style/current_style.html#line-length).
 
