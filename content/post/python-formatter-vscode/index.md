@@ -1,5 +1,5 @@
 ---
-title: "Python Formatter setting in VSCode"
+title: Python Formatter setting in VSCode
 description: 
 date: 2024-04-02T15:47:59Z
 image: 
@@ -8,12 +8,12 @@ license:
 hidden: false
 comments: true
 draft: false
-tags: 
-    - python
-    - vscode
-    - setting
+tags:
+  - python
+  - vscode
+  - setting
 categories:
-    - skills
+  - skills
 ---
 
 While using Black Formatter in VSCode, we can set the maximum line length to prevent some code to be wrapped lines by reformat operation.
