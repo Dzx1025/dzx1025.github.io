@@ -1,5 +1,5 @@
 ---
-title: RAII
+title: C++ RAII
 description:
 date: 2023-02-22T12:18:59Z
 image:

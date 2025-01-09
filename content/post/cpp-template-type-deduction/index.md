@@ -1,6 +1,6 @@
 ---
-title:
-description: Template Type Deduction
+title: Template Type Deduction
+description: 
 date: 2023-03-12T12:18:59Z
 image:
 math:
