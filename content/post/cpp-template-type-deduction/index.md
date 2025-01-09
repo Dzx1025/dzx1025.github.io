@@ -1,7 +1,7 @@
 ---
 title:
 description: Template Type Deduction
-date: 2023-3-12T12:18:59Z
+date: 2023-03-12T12:18:59Z
 image:
 math:
 license:
