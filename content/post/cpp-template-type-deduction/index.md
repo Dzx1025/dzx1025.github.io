@@ -41,7 +41,7 @@ First, let's introduce common terminology. In template function calls using `f(e
 
 C++ has three forms of `ParamType` declarations, representing three different deduction rules:
 
-### 1. _ParamType_ is a Reference/Pointer, but not a Universal Reference
+### _ParamType_ is a Reference/Pointer, but not a Universal Reference
 
 ```cpp
 template <typename T>
@@ -78,7 +78,7 @@ Therefore, the parameter will also be reference-to-const. This makes it safe to 
 
 We can see that `T` preserves both top-level and low-level const attributes from the argument `expr`, while `ParamType` simply adds a `&` after the deduced `typename T`, becoming `const T&`.
 
-### 2. _ParamType_ is a Universal Reference
+### _ParamType_ is a Universal Reference
 
 ```cpp
 template<typename T>
@@ -111,7 +111,7 @@ In this case, `ParamType` is called a universal reference. For universal referen
    f(27);              // T-> int      f(int&&)
    ```
 
-### 3. _ParamType_ is Neither a Pointer/Reference Nor a Universal Reference
+### _ParamType_ is Neither a Pointer/Reference Nor a Universal Reference
 
 ```cpp
 template<typename T>
