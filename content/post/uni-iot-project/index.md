@@ -15,6 +15,7 @@ tags:
   - arduino
   - influxdb
   - next.js
+  - node.js
   - react
   - uni
 
@@ -22,7 +23,7 @@ categories:
   - project
 ---
 
-This project is a uni project in which we designed and implemented a full-stack medical information monitoring system combining hardware and software at 2024 S2. The final product utilizes various sensors to monitor data from medical instruments and consolidates the information into a dashboard web application for convenient viewing. The source code is open-sourced and available on [GitHub](https://github.com/Dzx1025/CITS5506-IoT) and the live demo is also available on <https://vitaltrack.dzx1025.com>.
+This post introduce a uni project at 2024 S2 in which we designed and implemented a full-stack medical information monitoring system combining hardware and software. The final product utilizes various sensors to monitor data from medical instruments and consolidates the information into a dashboard web application for convenient viewing. The source code is open-sourced and available on [GitHub](https://github.com/Dzx1025/CITS5506-IoT) and the live demo is also available on <https://vitaltrack.dzx1025.com>.
 
 My primary responsibilities in this project included developing the dashboard application and designing the APIs. As such, this article will primarily focus on the software development aspects of the project:
 
@@ -88,7 +89,7 @@ These values will be cached in local storage to avoid repeated inputs.
 
 For regular patient users, they can monitor commonly used data via the dashboard and adjust the local Alert Threshold by dragging the slider.
 
-![dashboard](dashboard.png)
+{{< figure src="/dashboard.png" alt="dashboard" width="300px" height="auto" >}}
 
 When the remaining IV bag capacity falls below the alert threshold, both the app and the ESP32 emit a warning sound to alert the user. Clicking the Stop button will stop the app’s warning sound.
 
