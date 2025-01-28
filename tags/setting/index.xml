@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Setting on</title><link>https://www.dzx1025.com/tags/setting/</link><description>Recent content in Setting on</description><generator>Hugo -- gohugo.io</generator><language>en-au</language><lastBuildDate>Tue, 02 Apr 2024 15:47:59 +0000</lastBuildDate><atom:link href="https://www.dzx1025.com/tags/setting/index.xml" rel="self" type="application/rss+xml"/><item><title>Python Formatter setting in VSCode</title><link>https://www.dzx1025.com/p/python-formatter-setting-in-vscode/</link><pubDate>Tue, 02 Apr 2024 15:47:59 +0000</pubDate><guid>https://www.dzx1025.com/p/python-formatter-setting-in-vscode/</guid><description>&lt;p>While using Black Formatter in VSCode, we can set the maximum line length to prevent some code to be wrapped lines by reformat operation.&lt;/p>
+&lt;p>Add these in setting.json.&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
+&lt;/span>&lt;span class="lnt">2
+&lt;/span>&lt;span class="lnt">3
+&lt;/span>&lt;span class="lnt">4
+&lt;/span>&lt;span class="lnt">5
+&lt;/span>&lt;span class="lnt">6
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-json" data-lang="json">&lt;span class="line">&lt;span class="cl">&lt;span class="p">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nt">&amp;#34;black-formatter.args&amp;#34;&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="p">[&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="s2">&amp;#34;--line-length&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="s2">&amp;#34;90&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">]&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">}&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;p>Before:&lt;/p>
+&lt;p>&lt;img src="https://www.dzx1025.com/p/python-formatter-setting-in-vscode/image.png"
+width="1236"
+height="197"
+srcset="https://www.dzx1025.com/p/python-formatter-setting-in-vscode/image_hu_4c4ba05ce20f282f.png 480w, https://www.dzx1025.com/p/python-formatter-setting-in-vscode/image_hu_903e9724fd954d4b.png 1024w"
+loading="lazy"
+alt="before"
+class="gallery-image"
+data-flex-grow="627"
+data-flex-basis="1505px"
+>&lt;/p>
+&lt;p>After:&lt;/p>
+&lt;p>&lt;img src="https://www.dzx1025.com/p/python-formatter-setting-in-vscode/image-1.png"
+width="1671"
+height="104"
+srcset="https://www.dzx1025.com/p/python-formatter-setting-in-vscode/image-1_hu_89d89e52abbaa125.png 480w, https://www.dzx1025.com/p/python-formatter-setting-in-vscode/image-1_hu_18af0c807d217e89.png 1024w"
+loading="lazy"
+alt="after"
+class="gallery-image"
+data-flex-grow="1606"
+data-flex-basis="3856px"
+>&lt;/p>
+&lt;p>About the best line length number, refer to &lt;a class="link" href="https://black.readthedocs.io/en/stable/the_black_code_style/current_style.html#line-length" target="_blank" rel="noopener"
+>Black document&lt;/a>.&lt;/p>
+&lt;blockquote>
+&lt;p>In general, 90-ish seems like the wise choice.&lt;/p>
+&lt;/blockquote></description></item></channel></rss>

@@ -1,0 +1,470 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Posts on</title><link>https://www.dzx1025.com/post/</link><description>Recent content in Posts on</description><generator>Hugo -- gohugo.io</generator><language>en-au</language><lastBuildDate>Fri, 10 Jan 2025 10:03:05 +0000</lastBuildDate><atom:link href="https://www.dzx1025.com/post/index.xml" rel="self" type="application/rss+xml"/><item><title>IoT Project: Vital Track</title><link>https://www.dzx1025.com/p/iot-project-vital-track/</link><pubDate>Fri, 10 Jan 2025 10:03:05 +0000</pubDate><guid>https://www.dzx1025.com/p/iot-project-vital-track/</guid><description>&lt;p>This post introduce a uni project at 2024 S2 in which we designed and implemented a full-stack medical information monitoring system combining hardware and software. The final product utilizes various sensors to monitor data from medical instruments and consolidates the information into a dashboard web application for convenient viewing. The source code is open-sourced and available on &lt;a class="link" href="https://github.com/Dzx1025/CITS5506-IoT" target="_blank" rel="noopener"
+>GitHub&lt;/a> and the live demo is also available on &lt;a class="link" href="https://vitaltrack.dzx1025.com" target="_blank" rel="noopener"
+>https://vitaltrack.dzx1025.com&lt;/a>.&lt;/p>
+&lt;p>My primary responsibilities in this project included developing the dashboard application and designing the APIs. As such, this article will primarily focus on the software development aspects of the project:&lt;/p>
+&lt;h2 id="system-architecture">System Architecture
+&lt;/h2>&lt;p>Due to budget constraints for the school project, we only used infusion bag sensors for the hardware component. Also considering the requirements for high hardware scalability and low power consumption, the specific hardware configuration is as follows:&lt;/p>
+&lt;table>
+&lt;thead>
+&lt;tr>
+&lt;th>Hardwares&lt;/th>
+&lt;th>Number&lt;/th>
+&lt;/tr>
+&lt;/thead>
+&lt;tbody>
+&lt;tr>
+&lt;td>TTGO T-Beam v1.2 ESP32 - 915MHZ Version&lt;/td>
+&lt;td>1&lt;/td>
+&lt;/tr>
+&lt;tr>
+&lt;td>Jumper Wires&lt;/td>
+&lt;td>10&lt;/td>
+&lt;/tr>
+&lt;tr>
+&lt;td>Mini External USB Stereo Speaker&lt;/td>
+&lt;td>1&lt;/td>
+&lt;/tr>
+&lt;tr>
+&lt;td>1kg Beam Load Cell&lt;/td>
+&lt;td>1&lt;/td>
+&lt;/tr>
+&lt;tr>
+&lt;td>Buttons&lt;/td>
+&lt;td>1&lt;/td>
+&lt;/tr>
+&lt;tr>
+&lt;td>LED of different colours&lt;/td>
+&lt;td>5&lt;/td>
+&lt;/tr>
+&lt;/tbody>
+&lt;/table>
+&lt;p>The hardware structure after assembly and the functions of each component are shown in the diagram below:&lt;/p>
+&lt;p>&lt;img src="https://www.dzx1025.com/p/iot-project-vital-track/hardware.png"
+width="3537"
+height="1824"
+srcset="https://www.dzx1025.com/p/iot-project-vital-track/hardware_hu_a9b797dbe821a7a2.png 480w, https://www.dzx1025.com/p/iot-project-vital-track/hardware_hu_61b64a582f4adeaa.png 1024w"
+loading="lazy"
+alt="hardwares"
+class="gallery-image"
+data-flex-grow="193"
+data-flex-basis="465px"
+>&lt;/p>
+&lt;p>In this project, we primarily used the MQTT protocol for communication, with all communication data stored in InfluxDB. Ideally, these services would be deployed on hospital servers. Following a client/server (C/S) architecture, the topic-based features of MQTT enable a convenient management model for different departments and floors.&lt;/p>
+&lt;p>&lt;img src="https://www.dzx1025.com/p/iot-project-vital-track/structure.png"
+width="721"
+height="591"
+srcset="https://www.dzx1025.com/p/iot-project-vital-track/structure_hu_6deada31529d6eef.png 480w, https://www.dzx1025.com/p/iot-project-vital-track/structure_hu_b9eb833931e69e77.png 1024w"
+loading="lazy"
+alt="structure"
+class="gallery-image"
+data-flex-grow="121"
+data-flex-basis="292px"
+>&lt;/p>
+&lt;h2 id="platform-setup">Platform Setup
+&lt;/h2>&lt;p>For the MQTT protocol, I chose the open-source implementation Mosquitto. When Mosquitto is installed and running on the host machine, the host acts as the MQTT broker, providing relay services for all monitoring nodes, i.e., ESP32 devices. In our demo, both Mosquitto and InfluxDB are installed on a personal PC.&lt;/p>
+&lt;p>We use topics to tag hospital staff, monitoring data, and patient identities while utilizing an &lt;strong>Access-Control List (ACL)&lt;/strong> file to ensure proper authorization. For example, &lt;code>public/ivbag/patientId&lt;/code> represents public data about an IV bag associated with a patient identified by &lt;code>patientId&lt;/code>. For a specific IV bag sensor, the payload might be:&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
+&lt;/span>&lt;span class="lnt">2
+&lt;/span>&lt;span class="lnt">3
+&lt;/span>&lt;span class="lnt">4
+&lt;/span>&lt;span class="lnt">5
+&lt;/span>&lt;span class="lnt">6
+&lt;/span>&lt;span class="lnt">7
+&lt;/span>&lt;span class="lnt">8
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-json" data-lang="json">&lt;span class="line">&lt;span class="cl">&lt;span class="p">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nt">&amp;#34;level&amp;#34;&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="mi">43&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nt">&amp;#34;rate&amp;#34;&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="mf">23.52&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nt">&amp;#34;timeLeft&amp;#34;&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nt">&amp;#34;hour&amp;#34;&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="mi">0&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nt">&amp;#34;minute&amp;#34;&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="mi">30&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">}&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">}&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;p>For more detailed Mosquitto configuration, refer to &lt;a class="link" href="https://github.com/Dzx1025/CITS5506-IoT?tab=readme-ov-file#mqtt-configuration" target="_blank" rel="noopener"
+>GitHub MQTT Configuration&lt;/a>.&lt;/p>
+&lt;p>&lt;img src="https://www.dzx1025.com/p/iot-project-vital-track/system.png"
+width="1920"
+height="1080"
+srcset="https://www.dzx1025.com/p/iot-project-vital-track/system_hu_107dd2ad8b42372c.png 480w, https://www.dzx1025.com/p/iot-project-vital-track/system_hu_e58fc0a5ef5a8cb4.png 1024w"
+loading="lazy"
+alt="system"
+class="gallery-image"
+data-flex-grow="177"
+data-flex-basis="426px"
+>&lt;/p>
+&lt;h2 id="software-usage">Software usage
+&lt;/h2>&lt;p>&lt;img src="https://www.dzx1025.com/p/iot-project-vital-track/flowchart.png"
+width="1200"
+height="950"
+srcset="https://www.dzx1025.com/p/iot-project-vital-track/flowchart_hu_bf4518559457a0b3.png 480w, https://www.dzx1025.com/p/iot-project-vital-track/flowchart_hu_a7b3c13f090b0c69.png 1024w"
+loading="lazy"
+alt="flowchart"
+class="gallery-image"
+data-flex-grow="126"
+data-flex-basis="303px"
+>&lt;/p>
+&lt;h3 id="connecting">Connecting
+&lt;/h3>&lt;p>Because the dashboard application is hosted on the Vercel platform, if you want to set up your own version, you may need to provide your own environment variable &lt;code>MQTT_BROKER_URL&lt;/code>.&lt;/p>
+&lt;p>&lt;img src="https://www.dzx1025.com/p/iot-project-vital-track/env.png"
+width="1858"
+height="202"
+srcset="https://www.dzx1025.com/p/iot-project-vital-track/env_hu_a5bca3cb6ad67b49.png 480w, https://www.dzx1025.com/p/iot-project-vital-track/env_hu_bbac16390b1aa6df.png 1024w"
+loading="lazy"
+alt="env"
+class="gallery-image"
+data-flex-grow="919"
+data-flex-basis="2207px"
+>&lt;/p>
+&lt;p>In the application, simply input the patient’s monitoring ID and reconnect. If logging in as hospital staff, you need to enter the corresponding administrator username and password in the &lt;strong>Advanced Settings&lt;/strong>. Note these staff credentials need to be preconfigured in Mosquitto. When logged in as an staff, the topic used will be private, and there will be permission to modify the configuration of the ESP32 hardware, not just limited to the web app side.&lt;/p>
+&lt;p>&lt;img src="https://www.dzx1025.com/p/iot-project-vital-track/connect.png"
+width="834"
+height="434"
+srcset="https://www.dzx1025.com/p/iot-project-vital-track/connect_hu_7aace15eb53cc6b.png 480w, https://www.dzx1025.com/p/iot-project-vital-track/connect_hu_bf3b13913f2b13ae.png 1024w"
+loading="lazy"
+alt="connect"
+class="gallery-image"
+data-flex-grow="192"
+data-flex-basis="461px"
+>&lt;/p>
+&lt;p>These values will be cached in local storage to avoid repeated inputs.&lt;/p>
+&lt;h3 id="monitoring">Monitoring
+&lt;/h3>&lt;p>For regular patient users, they can monitor commonly used data via the dashboard and adjust the local Alert Threshold by dragging the slider.&lt;/p>
+&lt;figure>&lt;img src="https://www.dzx1025.com/p/iot-project-vital-track/dashboard.png"
+alt="dashboard" width="300px" height="auto">
+&lt;/figure>
+&lt;p>When the remaining IV bag capacity falls below the alert threshold, both the app and the ESP32 emit a warning sound to alert the user. Clicking the Stop button will stop the app’s warning sound.&lt;/p>
+&lt;p>&lt;img src="https://www.dzx1025.com/p/iot-project-vital-track/warning.png"
+width="3107"
+height="1682"
+srcset="https://www.dzx1025.com/p/iot-project-vital-track/warning_hu_647c336b032cb7c5.png 480w, https://www.dzx1025.com/p/iot-project-vital-track/warning_hu_4624e94288d6756f.png 1024w"
+loading="lazy"
+alt="warning"
+class="gallery-image"
+data-flex-grow="184"
+data-flex-basis="443px"
+>&lt;/p>
+&lt;p>At the same time, the ESP32 board will send the data to the InfluxDB for logging.&lt;/p>
+&lt;p>&lt;img src="https://www.dzx1025.com/p/iot-project-vital-track/data.png"
+width="1632"
+height="1858"
+srcset="https://www.dzx1025.com/p/iot-project-vital-track/data_hu_b7ef947cb4db3f76.png 480w, https://www.dzx1025.com/p/iot-project-vital-track/data_hu_bdfd49f36e73328.png 1024w"
+loading="lazy"
+alt="data"
+class="gallery-image"
+data-flex-grow="87"
+data-flex-basis="210px"
+>&lt;/p>
+&lt;h2 id="scalability">Scalability
+&lt;/h2>&lt;p>Additionally, since the application is developed using &lt;strong>Next.js&lt;/strong>, it can be conveniently converted into a React Native app for use on mobile platforms such as Apple devices. Here is a short demonstration video: &lt;a class="link" href="https://youtube.com/shorts/qPmOdOjlymg?si=D9SlY9jT2-UZ5Gxz" target="_blank" rel="noopener"
+>https://youtube.com/shorts/qPmOdOjlymg?si=D9SlY9jT2-UZ5Gxz&lt;/a>.&lt;/p></description></item><item><title>Python Formatter setting in VSCode</title><link>https://www.dzx1025.com/p/python-formatter-setting-in-vscode/</link><pubDate>Tue, 02 Apr 2024 15:47:59 +0000</pubDate><guid>https://www.dzx1025.com/p/python-formatter-setting-in-vscode/</guid><description>&lt;p>While using Black Formatter in VSCode, we can set the maximum line length to prevent some code to be wrapped lines by reformat operation.&lt;/p>
+&lt;p>Add these in setting.json.&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
+&lt;/span>&lt;span class="lnt">2
+&lt;/span>&lt;span class="lnt">3
+&lt;/span>&lt;span class="lnt">4
+&lt;/span>&lt;span class="lnt">5
+&lt;/span>&lt;span class="lnt">6
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-json" data-lang="json">&lt;span class="line">&lt;span class="cl">&lt;span class="p">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nt">&amp;#34;black-formatter.args&amp;#34;&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="p">[&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="s2">&amp;#34;--line-length&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="s2">&amp;#34;90&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">]&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">}&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;p>Before:&lt;/p>
+&lt;p>&lt;img src="https://www.dzx1025.com/p/python-formatter-setting-in-vscode/image.png"
+width="1236"
+height="197"
+srcset="https://www.dzx1025.com/p/python-formatter-setting-in-vscode/image_hu_4c4ba05ce20f282f.png 480w, https://www.dzx1025.com/p/python-formatter-setting-in-vscode/image_hu_903e9724fd954d4b.png 1024w"
+loading="lazy"
+alt="before"
+class="gallery-image"
+data-flex-grow="627"
+data-flex-basis="1505px"
+>&lt;/p>
+&lt;p>After:&lt;/p>
+&lt;p>&lt;img src="https://www.dzx1025.com/p/python-formatter-setting-in-vscode/image-1.png"
+width="1671"
+height="104"
+srcset="https://www.dzx1025.com/p/python-formatter-setting-in-vscode/image-1_hu_89d89e52abbaa125.png 480w, https://www.dzx1025.com/p/python-formatter-setting-in-vscode/image-1_hu_18af0c807d217e89.png 1024w"
+loading="lazy"
+alt="after"
+class="gallery-image"
+data-flex-grow="1606"
+data-flex-basis="3856px"
+>&lt;/p>
+&lt;p>About the best line length number, refer to &lt;a class="link" href="https://black.readthedocs.io/en/stable/the_black_code_style/current_style.html#line-length" target="_blank" rel="noopener"
+>Black document&lt;/a>.&lt;/p>
+&lt;blockquote>
+&lt;p>In general, 90-ish seems like the wise choice.&lt;/p>
+&lt;/blockquote></description></item><item><title>Template Type Deduction</title><link>https://www.dzx1025.com/p/template-type-deduction/</link><pubDate>Sun, 12 Mar 2023 12:18:59 +0000</pubDate><guid>https://www.dzx1025.com/p/template-type-deduction/</guid><description>&lt;h2 id="first-lets-distinguish-different-cases-of-const">First, let&amp;rsquo;s distinguish different cases of const
+&lt;/h2>&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
+&lt;/span>&lt;span class="lnt">2
+&lt;/span>&lt;span class="lnt">3
+&lt;/span>&lt;span class="lnt">4
+&lt;/span>&lt;span class="lnt">5
+&lt;/span>&lt;span class="lnt">6
+&lt;/span>&lt;span class="lnt">7
+&lt;/span>&lt;span class="lnt">8
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-cpp" data-lang="cpp">&lt;span class="line">&lt;span class="cl">&lt;span class="c1">// Variables
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">&lt;/span>&lt;span class="k">const&lt;/span> &lt;span class="kt">int&lt;/span> &lt;span class="n">x&lt;/span>&lt;span class="p">;&lt;/span> &lt;span class="c1">// top-level const
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">// References
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">&lt;/span>&lt;span class="k">const&lt;/span> &lt;span class="kt">int&lt;/span>&lt;span class="o">&amp;amp;&lt;/span> &lt;span class="n">r1&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="n">x&lt;/span>&lt;span class="p">;&lt;/span> &lt;span class="c1">// low-level const
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">&lt;/span>&lt;span class="kt">int&lt;/span>&lt;span class="o">&amp;amp;&lt;/span> &lt;span class="k">const&lt;/span> &lt;span class="n">r2&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="n">x&lt;/span>&lt;span class="p">;&lt;/span> &lt;span class="c1">// this syntax doesn&amp;#39;t exist
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">// Pointers
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">&lt;/span>&lt;span class="k">const&lt;/span> &lt;span class="kt">int&lt;/span>&lt;span class="o">*&lt;/span> &lt;span class="n">p1&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="o">&amp;amp;&lt;/span>&lt;span class="n">x&lt;/span>&lt;span class="p">;&lt;/span> &lt;span class="c1">// low-level const
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">&lt;/span>&lt;span class="kt">int&lt;/span>&lt;span class="o">*&lt;/span> &lt;span class="k">const&lt;/span> &lt;span class="n">p2&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="o">&amp;amp;&lt;/span>&lt;span class="n">x&lt;/span>&lt;span class="p">;&lt;/span> &lt;span class="c1">// top-level const
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;p>For top-level const, it indicates that the variable &lt;strong>itself&lt;/strong> cannot be modified. As the name suggests, &amp;ldquo;top-level&amp;rdquo; refers to the topmost layer, which is the variable itself.&lt;/p>
+&lt;p>For low-level const, it indicates that the space &lt;strong>pointed to&lt;/strong> by the reference/pointer cannot be modified.&lt;/p>
+&lt;p>Why can&amp;rsquo;t references be declared with top-level &lt;code>const&lt;/code>? This is because &lt;strong>all references are inherently top-level &lt;code>const&lt;/code>&lt;/strong> - once a reference is initialized, it cannot be changed to reference another object. Since references already have the top-level &lt;code>const&lt;/code> property, there&amp;rsquo;s no need for us to explicitly declare it. As we can see, the most common references/pointers we encounter are low-level &lt;code>const&lt;/code>, meaning they modify the immutability of the variables they point to.&lt;/p>
+&lt;p>With this understanding, let&amp;rsquo;s look at template type deduction.&lt;/p>
+&lt;h2 id="type-deduction">Type Deduction
+&lt;/h2>&lt;p>First, let&amp;rsquo;s introduce common terminology. In template function calls using &lt;code>f(expr)&lt;/code>, we have arguments and parameters. Here, we&amp;rsquo;ll mainly study the parameters and the typename&amp;rsquo;s value type, which are &lt;code>T&lt;/code> and &lt;code>ParamType&lt;/code>.&lt;/p>
+&lt;p>C++ has three forms of &lt;code>ParamType&lt;/code> declarations, representing three different deduction rules:&lt;/p>
+&lt;h3 id="_paramtype_-is-a-referencepointer-but-not-a-universal-reference">&lt;em>ParamType&lt;/em> is a Reference/Pointer, but not a Universal Reference
+&lt;/h3>&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
+&lt;/span>&lt;span class="lnt">2
+&lt;/span>&lt;span class="lnt">3
+&lt;/span>&lt;span class="lnt">4
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-cpp" data-lang="cpp">&lt;span class="line">&lt;span class="cl">&lt;span class="k">template&lt;/span> &lt;span class="o">&amp;lt;&lt;/span>&lt;span class="k">typename&lt;/span> &lt;span class="n">T&lt;/span>&lt;span class="o">&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="kt">void&lt;/span> &lt;span class="n">f&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">T&lt;/span>&lt;span class="o">&amp;amp;&lt;/span> &lt;span class="n">param&lt;/span>&lt;span class="p">);&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">// For pointer ParamType:
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">&lt;/span>&lt;span class="kt">void&lt;/span> &lt;span class="nf">f&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">T&lt;/span>&lt;span class="o">*&lt;/span> &lt;span class="n">param&lt;/span>&lt;span class="p">);&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;p>First, &lt;strong>if the type of &lt;code>expr&lt;/code> is a reference, the reference part is ignored&lt;/strong>, so &lt;code>int&amp;amp;&lt;/code> and &lt;code>int&lt;/code> should yield the same deduction result. Since &lt;code>ParamType&lt;/code> already specifies that the function parameter is a reference, when both &lt;code>expr&lt;/code> and &lt;code>paramtype&lt;/code> are references, &lt;code>expr&lt;/code>&amp;rsquo;s reference part is ignored.&lt;/p>
+&lt;p>The same principle applies when both are pointers - &lt;code>int*&lt;/code> and &lt;code>int&lt;/code> are treated equally because &lt;code>ParamType&lt;/code> already indicates that this template wants to use a reference/pointer type parameter.&lt;/p>
+&lt;p>Note that when &lt;code>ParamType&lt;/code> is a reference type and &lt;code>expr&lt;/code> is a pointer type, the pointer part isn&amp;rsquo;t ignored - &lt;code>T&lt;/code>&amp;rsquo;s type will match &lt;code>expr&lt;/code>, as shown below. However, in normal circumstances, why would you pass a pointer to a reference? Conversely, when &lt;code>ParamType&lt;/code> is a pointer and &lt;code>expr&lt;/code> is a reference type, calling &lt;code>f(expr)&lt;/code> requires passing the address of the reference to match, which is essentially the same as passing a variable&amp;rsquo;s address.&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
+&lt;/span>&lt;span class="lnt">2
+&lt;/span>&lt;span class="lnt">3
+&lt;/span>&lt;span class="lnt">4
+&lt;/span>&lt;span class="lnt">5
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-cpp" data-lang="cpp">&lt;span class="line">&lt;span class="cl">&lt;span class="kt">int&lt;/span> &lt;span class="n">x&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="mi">27&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">const&lt;/span> &lt;span class="kt">int&lt;/span> &lt;span class="n">cx&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="n">x&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">const&lt;/span> &lt;span class="kt">int&lt;/span>&lt;span class="o">&amp;amp;&lt;/span> &lt;span class="n">rx&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="n">x&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">const&lt;/span> &lt;span class="kt">int&lt;/span> &lt;span class="o">*&lt;/span> &lt;span class="n">p1&lt;/span>&lt;span class="o">=&amp;amp;&lt;/span>&lt;span class="n">x&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="kt">int&lt;/span>&lt;span class="o">*&lt;/span> &lt;span class="k">const&lt;/span> &lt;span class="n">p2&lt;/span>&lt;span class="o">=&amp;amp;&lt;/span>&lt;span class="n">x&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
+&lt;/span>&lt;span class="lnt">2
+&lt;/span>&lt;span class="lnt">3
+&lt;/span>&lt;span class="lnt">4
+&lt;/span>&lt;span class="lnt">5
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-cpp" data-lang="cpp">&lt;span class="line">&lt;span class="cl">&lt;span class="n">f&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">x&lt;/span>&lt;span class="p">);&lt;/span> &lt;span class="c1">// T-&amp;gt; int f(int&amp;amp;)
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">&lt;/span>&lt;span class="n">f&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">cx&lt;/span>&lt;span class="p">);&lt;/span> &lt;span class="c1">// T-&amp;gt; const int f(const int&amp;amp;)
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">&lt;/span>&lt;span class="n">f&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">rx&lt;/span>&lt;span class="p">);&lt;/span> &lt;span class="c1">// T-&amp;gt; const int f(const int&amp;amp;)
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">&lt;/span>&lt;span class="n">f&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">p1&lt;/span>&lt;span class="p">);&lt;/span> &lt;span class="c1">// T-&amp;gt; const int * f(const int *&amp;amp;)
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">&lt;/span>&lt;span class="n">f&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">p2&lt;/span>&lt;span class="p">);&lt;/span> &lt;span class="c1">// T-&amp;gt; int *const f(int *const &amp;amp;)
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;p>For callers, when passing a &lt;code>const&lt;/code> object to a reference parameter, they expect the object to maintain its immutability. If the passed parameter cannot modify the content it points to, the template should obviously also protect that space from modification.&lt;/p>
+&lt;p>Therefore, the parameter will also be reference-to-const. This makes it safe to pass a const object to a template with a &lt;code>T&amp;amp;&lt;/code> type parameter: the object&amp;rsquo;s constness is preserved as part of &lt;code>T&lt;/code>.&lt;/p>
+&lt;p>We can see that &lt;code>T&lt;/code> preserves both top-level and low-level const attributes from the argument &lt;code>expr&lt;/code>, while &lt;code>ParamType&lt;/code> simply adds a &lt;code>&amp;amp;&lt;/code> after the deduced &lt;code>typename T&lt;/code>, becoming &lt;code>const T&amp;amp;&lt;/code>.&lt;/p>
+&lt;h3 id="_paramtype_-is-a-universal-reference">&lt;em>ParamType&lt;/em> is a Universal Reference
+&lt;/h3>&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
+&lt;/span>&lt;span class="lnt">2
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-cpp" data-lang="cpp">&lt;span class="line">&lt;span class="cl">&lt;span class="k">template&lt;/span>&lt;span class="o">&amp;lt;&lt;/span>&lt;span class="k">typename&lt;/span> &lt;span class="n">T&lt;/span>&lt;span class="o">&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="kt">void&lt;/span> &lt;span class="n">f&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">T&lt;/span>&lt;span class="o">&amp;amp;&amp;amp;&lt;/span> &lt;span class="n">param&lt;/span>&lt;span class="p">);&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;p>In this case, &lt;code>ParamType&lt;/code> is called a universal reference. For universal references, we must discuss two situations based on &lt;code>expr&lt;/code>&amp;rsquo;s &lt;strong>value category&lt;/strong>:&lt;/p>
+&lt;ol>
+&lt;li>
+&lt;p>When &lt;code>expr&lt;/code> is an lvalue: Both &lt;code>T&lt;/code> and &lt;code>ParamType&lt;/code> are deduced as lvalue references. This is &lt;strong>the only case in template type deduction where &lt;code>T&lt;/code> is deduced as a reference&lt;/strong>.&lt;/p>
+&lt;p>In this case, &lt;code>ParamType&lt;/code>&amp;rsquo;s final result is actually consistent with scenario 1&amp;rsquo;s deduction result. The only difference is that in scenario 1, &lt;code>&amp;amp;&lt;/code> is added to the parameter after &lt;code>T&lt;/code> is deduced as a base type, while for universal references, &lt;code>&amp;amp;&lt;/code> is added when deducing &lt;code>T&lt;/code> - only &lt;code>T&lt;/code> differs.&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
+&lt;/span>&lt;span class="lnt">2
+&lt;/span>&lt;span class="lnt">3
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-cpp" data-lang="cpp">&lt;span class="line">&lt;span class="cl">&lt;span class="kt">int&lt;/span> &lt;span class="n">x&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="mi">27&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">const&lt;/span> &lt;span class="kt">int&lt;/span> &lt;span class="n">cx&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="n">x&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">const&lt;/span> &lt;span class="kt">int&lt;/span>&lt;span class="o">&amp;amp;&lt;/span> &lt;span class="n">rx&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="n">cx&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
+&lt;/span>&lt;span class="lnt">2
+&lt;/span>&lt;span class="lnt">3
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-cpp" data-lang="cpp">&lt;span class="line">&lt;span class="cl">&lt;span class="n">f&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">x&lt;/span>&lt;span class="p">);&lt;/span> &lt;span class="c1">//x is lvalue T-&amp;gt; int&amp;amp;, f(int&amp;amp;)
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">&lt;/span>&lt;span class="n">f&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">cx&lt;/span>&lt;span class="p">);&lt;/span> &lt;span class="c1">//cx is lvalue T-&amp;gt; const int&amp;amp; f(const int&amp;amp;)
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">&lt;/span>&lt;span class="n">f&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">rx&lt;/span>&lt;span class="p">);&lt;/span> &lt;span class="c1">//rx is lvalue T-&amp;gt; const int&amp;amp; f(const int&amp;amp;)
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;/li>
+&lt;li>
+&lt;p>When &lt;code>expr&lt;/code> is an rvalue: Use normal deduction rules (same as &lt;strong>scenario 1&lt;/strong>)&lt;/p>
+&lt;p>Here, &lt;code>T&lt;/code> will be the &amp;ldquo;base&amp;rdquo; type, while &lt;code>ParamType&lt;/code> will be an rvalue reference, i.e., &lt;code>T&amp;amp;&amp;amp;&lt;/code>&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-cpp" data-lang="cpp">&lt;span class="line">&lt;span class="cl">&lt;span class="n">f&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="mi">27&lt;/span>&lt;span class="p">);&lt;/span> &lt;span class="c1">// T-&amp;gt; int f(int&amp;amp;&amp;amp;)
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;/li>
+&lt;/ol>
+&lt;h3 id="_paramtype_-is-neither-a-pointerreference-nor-a-universal-reference">&lt;em>ParamType&lt;/em> is Neither a Pointer/Reference Nor a Universal Reference
+&lt;/h3>&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
+&lt;/span>&lt;span class="lnt">2
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-cpp" data-lang="cpp">&lt;span class="line">&lt;span class="cl">&lt;span class="k">template&lt;/span>&lt;span class="o">&amp;lt;&lt;/span>&lt;span class="k">typename&lt;/span> &lt;span class="n">T&lt;/span>&lt;span class="o">&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="kt">void&lt;/span> &lt;span class="n">f&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">T&lt;/span> &lt;span class="n">param&lt;/span>&lt;span class="p">);&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;p>This situation is similar to pass-by-value handling. This means the template actually generates a complete new object copy.&lt;/p>
+&lt;ol>
+&lt;li>As before, if &lt;code>expr&lt;/code>&amp;rsquo;s type is a reference, ignore the reference part&lt;/li>
+&lt;li>Unlike scenario 1, &lt;code>expr&lt;/code>&amp;rsquo;s &lt;code>const&lt;/code> and &lt;code>volatile&lt;/code> attributes are also ignored here, which is very reasonable because the original object&amp;rsquo;s attributes shouldn&amp;rsquo;t affect the copy&amp;rsquo;s attributes - after all, the template is only responsible for passing types&lt;/li>
+&lt;/ol>
+&lt;p>Therefore, the above &lt;code>x cx rx&lt;/code> will all be deduced as &lt;code>int&lt;/code>&lt;/p>
+&lt;p>However, note that &lt;code>const&lt;/code> is only ignored when passing by value to parameters. For reference-to-&lt;code>const&lt;/code> and pointer-to-&lt;code>const&lt;/code> parameters, besides themselves, they also contain the space they point to. What happens to this pointed space?&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
+&lt;/span>&lt;span class="lnt">2
+&lt;/span>&lt;span class="lnt">3
+&lt;/span>&lt;span class="lnt">4
+&lt;/span>&lt;span class="lnt">5
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-cpp" data-lang="cpp">&lt;span class="line">&lt;span class="cl">&lt;span class="k">const&lt;/span> &lt;span class="kt">char&lt;/span>&lt;span class="o">*&lt;/span> &lt;span class="k">const&lt;/span> &lt;span class="n">ptr&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="s">&amp;#34;Hello&amp;#34;&lt;/span>&lt;span class="p">;&lt;/span> &lt;span class="c1">// ptr is a const pointer pointing to const object
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">const&lt;/span> &lt;span class="kt">int&lt;/span> &lt;span class="n">x&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="mi">12&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">f&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">ptr&lt;/span>&lt;span class="p">);&lt;/span> &lt;span class="c1">// T-&amp;gt; const char *
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;p>In this case, only the &lt;strong>top-level&lt;/strong> &lt;code>const&lt;/code> of &lt;code>expr&lt;/code> is ignored, while the &lt;strong>low-level&lt;/strong> &lt;code>const&lt;/code> is preserved. Therefore, when we call &lt;code>f(&amp;quot;hello&amp;quot;)&lt;/code>, &lt;code>T&lt;/code> is deduced as &lt;code>const char *&lt;/code>. It&amp;rsquo;s like we copied a pointer - the template is still responsible for ensuring that the data pointed to by two identical pointers cannot be modified.&lt;/p>
+&lt;h3 id="array-function-decay-to-pointer">Array Function Decay to Pointer
+&lt;/h3>&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
+&lt;/span>&lt;span class="lnt">2
+&lt;/span>&lt;span class="lnt">3
+&lt;/span>&lt;span class="lnt">4
+&lt;/span>&lt;span class="lnt">5
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-cpp" data-lang="cpp">&lt;span class="line">&lt;span class="cl">&lt;span class="k">template&lt;/span>&lt;span class="o">&amp;lt;&lt;/span>&lt;span class="k">typename&lt;/span> &lt;span class="n">T&lt;/span>&lt;span class="o">&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="kt">void&lt;/span> &lt;span class="n">f&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">T&lt;/span> &lt;span class="n">param&lt;/span>&lt;span class="p">);&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">const&lt;/span> &lt;span class="kt">char&lt;/span> &lt;span class="n">name&lt;/span>&lt;span class="p">[]&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="s">&amp;#34;J. P. Briggs&amp;#34;&lt;/span>&lt;span class="p">;&lt;/span> &lt;span class="c1">// name&amp;#39;s type is const char[13]
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">&lt;/span>&lt;span class="n">f&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">name&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="c1">// T-&amp;gt; const char * i.e., f(const char*)
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;p>But if we make a small change&amp;hellip;&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
+&lt;/span>&lt;span class="lnt">2
+&lt;/span>&lt;span class="lnt">3
+&lt;/span>&lt;span class="lnt">4
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-cpp" data-lang="cpp">&lt;span class="line">&lt;span class="cl">&lt;span class="k">template&lt;/span>&lt;span class="o">&amp;lt;&lt;/span>&lt;span class="k">typename&lt;/span> &lt;span class="n">T&lt;/span>&lt;span class="o">&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="kt">void&lt;/span> &lt;span class="n">f&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">T&lt;/span>&lt;span class="o">&amp;amp;&lt;/span> &lt;span class="n">param&lt;/span>&lt;span class="p">);&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">f&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">name&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="c1">// T-&amp;gt; const char[13] f(const char(&amp;amp;)[13])
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;p>This type includes the array&amp;rsquo;s size. In this example, &lt;code>T&lt;/code> is deduced as &lt;code>const char[13]&lt;/code>, and the type of &lt;code>f&lt;/code>&amp;rsquo;s parameter (reference to this array) is &lt;code>const char (&amp;amp;)[13]&lt;/code>&lt;/p>
+&lt;p>But since you&amp;rsquo;re writing in C++, it&amp;rsquo;s recommended to use array instead&amp;hellip;.&lt;/p></description></item><item><title>C++ RAII</title><link>https://www.dzx1025.com/p/c-raii/</link><pubDate>Wed, 22 Feb 2023 12:18:59 +0000</pubDate><guid>https://www.dzx1025.com/p/c-raii/</guid><description>&lt;p>RAII(Resource Acquisition Is Initialization) is a C++ programming idiom that ties resource management to object lifetime.&lt;/p>
+&lt;h2 id="when-objects-should-not-be-stack-allocated">When Objects Should Not Be Stack-Allocated
+&lt;/h2>&lt;p>Objects should be heap-allocated when:&lt;/p>
+&lt;ul>
+&lt;li>Object size is very large&lt;/li>
+&lt;li>Object size cannot be determined at compile time&lt;/li>
+&lt;li>Object is a function return value but should not be returned by value due to specific reasons&lt;/li>
+&lt;/ul>
+&lt;h2 id="resource-management">Resource Management
+&lt;/h2>&lt;p>RAII uses stack-based objects and destructors to effectively manage system resources (including heap memory). For objects created with new inside stack scope, they should be wrapped in a class to ensure automatic destruction and resource release when the function returns.&lt;/p>
+&lt;p>Note: For any new-allocated objects on the stack, they should be wrapped in a class to ensure automatic cleanup through the destructor when going out of scope.&lt;/p></description></item><item><title>C++ Value Categories and Semantics</title><link>https://www.dzx1025.com/p/c-value-categories-and-semantics/</link><pubDate>Wed, 22 Feb 2023 12:18:59 +0000</pubDate><guid>https://www.dzx1025.com/p/c-value-categories-and-semantics/</guid><description>&lt;p>&lt;img src="https://www.dzx1025.com/p/c-value-categories-and-semantics/image.png"
+width="768"
+height="830"
+srcset="https://www.dzx1025.com/p/c-value-categories-and-semantics/image_hu_f09bd6304aee272d.png 480w, https://www.dzx1025.com/p/c-value-categories-and-semantics/image_hu_69ed6a393fadeb8f.png 1024w"
+loading="lazy"
+alt="image.png"
+class="gallery-image"
+data-flex-grow="92"
+data-flex-basis="222px"
+>&lt;/p>
+&lt;h2 id="types-of-values">Types of Values
+&lt;/h2>&lt;ul>
+&lt;li>&lt;strong>lvalue:&lt;/strong> &lt;code>++x&lt;/code>, &lt;code>x = 1&lt;/code>, &lt;code>cout &amp;lt;&amp;lt; '...'&lt;/code>, &lt;code>&amp;quot;hello world&amp;quot;&lt;/code>&lt;/li>
+&lt;li>&lt;strong>xvalue (expiring value):&lt;/strong> &lt;code>std::move(ptr1)&lt;/code> can be considered as a named rvalue, distinguished from unnamed pure rvalue (prvalue)&lt;/li>
+&lt;li>&lt;strong>prvalue:&lt;/strong> smart_ptr ptr1{&lt;code>new circle()&lt;/code>}, &lt;code>return circle()&lt;/code>&lt;/li>
+&lt;/ul>
+&lt;h2 id="value-categories">Value Categories
+&lt;/h2>&lt;p>C++ has unique concepts of value categories - lvalue/rvalue:&lt;/p>
+&lt;h3 id="value-and-reference-types-comparison">Value and Reference Types Comparison
+&lt;/h3>&lt;table>
+&lt;thead>
+&lt;tr>
+&lt;th>Language&lt;/th>
+&lt;th>Value Types&lt;/th>
+&lt;th>Reference Types&lt;/th>
+&lt;/tr>
+&lt;/thead>
+&lt;tbody>
+&lt;tr>
+&lt;td>C++&lt;/td>
+&lt;td>All primitive types, enums, structs, unions, classes&lt;/td>
+&lt;td>References (&amp;amp;) and pointers (*)&lt;/td>
+&lt;/tr>
+&lt;tr>
+&lt;td>Java&lt;/td>
+&lt;td>Primitive types (numbers, etc.)&lt;/td>
+&lt;td>Classes&lt;/td>
+&lt;/tr>
+&lt;tr>
+&lt;td>Python&lt;/td>
+&lt;td>None&lt;/td>
+&lt;td>All&lt;/td>
+&lt;/tr>
+&lt;/tbody>
+&lt;/table>
+&lt;p>C++ primarily uses value semantics - parameters are passed by value (copied) by default.&lt;/p></description></item></channel></rss>
