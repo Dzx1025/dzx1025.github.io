@@ -1,7 +1,10 @@
 # Change baseurl before deploy
-baseurl = "https://dzx1025.github.io"
+baseurl = "https://www.dzx1025.com"
 languageCode = "en-au"
-paginate = 5
+
+[pagination]
+    paginate = 5
+
 title = "Zeke"
 
 # Theme i18n support
